@@ -1,24 +1,30 @@
+
 package com.solar.rfid;
 
 import com.solar.rfid.ui.MappingFrame;
-import com.uhf.UHFMainForm;
+import com.solar.rfid.ui.LiveMappingFrame;
+import com.solar.rfid.rfid.RFIDInitializer;
+import com.solar.rfid.service.AutoMappingEngine;
 
 public class MainApp {
 
-    public static UHFMainForm UHF_WINDOW; // keep reference
-
     public static void main(String[] args) {
 
-        // 🔴 MUST stay alive for SDK to work
-        UHF_WINDOW = new UHFMainForm();
-        UHF_WINDOW.setVisible(true);   // DO NOT hide immediately
+        // RFID SDK init (port same, no change)
+        RFIDInitializer.init();
 
-        // Your application UI
-        new MappingFrame().setVisible(true);
+        // OLD Excel + Manual UI (unchanged)
+        MappingFrame excelFrame = new MappingFrame();
+        excelFrame.setVisible(true);
+
+        // NEW Live Auto UI
+        LiveMappingFrame liveUI = new LiveMappingFrame();
+        liveUI.setVisible(true);
+
+        // Auto engine
+        AutoMappingEngine engine = new AutoMappingEngine(liveUI);
+        engine.start();
     }
 }
-
-
-
 
 

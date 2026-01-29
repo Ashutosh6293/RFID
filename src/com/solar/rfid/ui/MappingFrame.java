@@ -17,7 +17,7 @@ public class MappingFrame extends JFrame {
         JButton btnRFID = new JButton("Scan RFID & Map EPC");
 
         // 🔹 INIT RFID once (CHANGE COM if needed)
-        RFIDService.initReader("COM4");
+        RFIDService.initReader("COM3");
 
         // Excel upload (UNCHANGED)
         btnExcel.addActionListener(e -> {
