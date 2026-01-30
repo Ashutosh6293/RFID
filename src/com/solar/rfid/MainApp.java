@@ -1,29 +1,57 @@
-
 package com.solar.rfid;
 
+import javax.swing.SwingUtilities;
+
+import com.solar.rfid.rfid.RFIDService;
 import com.solar.rfid.ui.MappingFrame;
 import com.solar.rfid.ui.LiveMappingFrame;
-import com.solar.rfid.rfid.RFIDInitializer;
 import com.solar.rfid.service.AutoMappingEngine;
 
 public class MainApp {
 
+    private static boolean started = false;
+
     public static void main(String[] args) {
 
-        // RFID SDK init (port same, no change)
-        RFIDInitializer.init();
+        if (started) return;
+        started = true;
 
-        // OLD Excel + Manual UI (unchanged)
-        MappingFrame excelFrame = new MappingFrame();
-        excelFrame.setVisible(true);
+        System.out.println("Application started");
 
-        // NEW Live Auto UI
-        LiveMappingFrame liveUI = new LiveMappingFrame();
-        liveUI.setVisible(true);
+        // 🔒 RFID INIT — ONLY HERE, ONLY ONCE
+        boolean ok = RFIDService.initReader("COM4");
+        if (!ok) {
+            System.out.println("❌ RFID init failed on COM4");
+            return;
+        }
 
-        // Auto engine
-        AutoMappingEngine engine = new AutoMappingEngine(liveUI);
-        engine.start();
+        // ✅ Always start Swing on EDT
+        SwingUtilities.invokeLater(() -> {
+
+            // ===============================
+            // 1️⃣ Excel Upload UI (Manual)
+            // ===============================
+            MappingFrame excelUI = new MappingFrame();
+            excelUI.setTitle("Excel Upload – Panel Data");
+            excelUI.setLocation(50, 50);
+            excelUI.setVisible(true);
+
+            // ===============================
+            // 2️⃣ Live Auto Mapping UI
+            // ===============================
+            LiveMappingFrame liveUI = new LiveMappingFrame();
+            liveUI.setTitle("GAUTAM SOLAR PVT. LTD. – LIVE RFID MAPPING");
+            liveUI.setLocation(700, 50);
+            liveUI.setVisible(true);
+
+            // ===============================
+            // 3️⃣ Auto Mapping Engine
+            // ===============================
+            AutoMappingEngine engine = new AutoMappingEngine(liveUI);
+            engine.start();
+
+            System.out.println("✅ UI READY – AUTO SCAN ACTIVE");
+        });
     }
 }
 
