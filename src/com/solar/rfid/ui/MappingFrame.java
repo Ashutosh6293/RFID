@@ -1,60 +1,79 @@
+
+
+
 package com.solar.rfid.ui;
 
 import javax.swing.*;
-import com.solar.rfid.rfid.RFIDService;
-import com.solar.rfid.db.PanelRepository;
-import com.solar.rfid.excel.ExcelImporter;
+import java.awt.*;
 import java.io.File;
+
+import com.solar.rfid.excel.ExcelImporter;
+import com.solar.rfid.service.AutoMappingEngine;
 
 public class MappingFrame extends JFrame {
 
+    private JTextField txtBarcode = new JTextField(20);
+
     public MappingFrame() {
 
-        setTitle("Solar Panel RFID Mapping");
+        setTitle("Excel Upload – Panel Data");
+        setSize(420, 220);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
 
-        JTextField txtSerial = new JTextField(25);
-        JButton btnExcel = new JButton("Upload Excel");
-        JButton btnRFID = new JButton("Scan RFID & Map EPC");
+        // ================= TOP =================
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        top.add(new JLabel("Panel Barcode : "));
+        top.add(txtBarcode);
 
-        // 🔹 INIT RFID once (CHANGE COM if needed)
-        RFIDService.initReader("COM3");
+        add(top, BorderLayout.NORTH);
 
-        // Excel upload (UNCHANGED)
-        btnExcel.addActionListener(e -> {
+        // ================= CENTER BUTTONS =================
+        JPanel center = new JPanel(new GridLayout(3, 1, 10, 10));
+        center.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JButton btnUploadExcel = new JButton("Upload Excel");
+        JButton btnScanRFID = new JButton("Scan RFID & Map EPC");
+        JButton btnStaticData = new JButton("Fill Static Panel Data");
+
+        center.add(btnUploadExcel);
+        center.add(btnScanRFID);
+        center.add(btnStaticData);
+
+        add(center, BorderLayout.CENTER);
+
+        // ================= ACTIONS =================
+
+        // 1️⃣ Excel Upload
+        btnUploadExcel.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
-            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                File f = fc.getSelectedFile();
-                ExcelImporter.importExcel(f);
-                JOptionPane.showMessageDialog(this, "Excel uploaded to DB");
+            int res = fc.showOpenDialog(this);
+            if (res == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                ExcelImporter.importExcel(file);
+                JOptionPane.showMessageDialog(this,
+                        "Excel Imported Successfully");
             }
         });
 
-        // RFID mapping
-        btnRFID.addActionListener(e -> {
-            String serial = txtSerial.getText().trim();
-            if (serial.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Scan panel barcode first");
+        // 2️⃣ Static Data Form
+        btnStaticData.addActionListener(e -> {
+            new StaticDataForm(this).setVisible(true);
+        });
+
+        // 3️⃣ 🔥 MANUAL RFID + MAPPING
+        btnScanRFID.addActionListener(e -> {
+
+            String barcode = txtBarcode.getText().trim();
+
+            if (barcode.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Please enter Panel Barcode");
                 return;
             }
 
-            String epc = RFIDService.readSingleEPC(3000);
-            if (epc != null) {
-                PanelRepository.updateEPC(serial, epc);
-                JOptionPane.showMessageDialog(this,
-                        "EPC mapped successfully:\n" + epc);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "RFID tag not detected");
-            }
+            // 🔥 THIS WAS MISSING
+            AutoMappingEngine.manualTrigger(barcode);
         });
-
-        setLayout(new java.awt.FlowLayout());
-        add(new JLabel("Panel Barcode:"));
-        add(txtSerial);
-        add(btnExcel);
-        add(btnRFID);
-
-        setSize(500, 220);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 }

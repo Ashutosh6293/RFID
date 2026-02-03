@@ -1,0 +1,37 @@
+compile
+
+
+
+"C:\Program Files\Java\jdk1.8.0_202\bin\javac" ^
+-encoding UTF-8 ^
+-source 1.8 ^
+-target 1.8 ^
+-cp ".;lib/*" ^
+-d bin ^
+src\com\solar\rfid\MainApp.java ^
+src\com\solar\rfid\barcode\BarcodeListener.java ^
+src\com\solar\rfid\db\DBUtil.java ^
+src\com\solar\rfid\db\PanelRepository.java ^
+src\com\solar\rfid\db\StaticDataRepository.java ^
+src\com\solar\rfid\excel\ExcelImporter.java ^
+src\com\solar\rfid\model\PanelData.java ^
+src\com\solar\rfid\model\StaticPanelData.java ^
+src\com\solar\rfid\rfid\RFIDService.java ^
+src\com\solar\rfid\rfid\RFIDAutoScanner.java ^
+src\com\solar\rfid\service\AutoMappingEngine.java ^
+src\com\solar\rfid\ui\MappingFrame.java ^
+src\com\solar\rfid\ui\LiveMappingFrame.java ^
+src\com\solar\rfid\ui\IVCurvePanel.java ^
+src\com\solar\rfid\ui\StaticDataForm.java
+
+
+
+
+
+run
+
+
+"C:\Program Files\Java\jdk1.8.0_202\bin\java" ^
+-cp "bin;lib/*" ^
+com.solar.rfid.MainApp
+

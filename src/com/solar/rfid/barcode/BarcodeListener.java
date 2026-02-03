@@ -1,3 +1,4 @@
+
 package com.solar.rfid.barcode;
 
 import java.awt.event.KeyAdapter;
@@ -14,7 +15,7 @@ public class BarcodeListener extends KeyAdapter {
 
     @Override
     public void keyTyped(KeyEvent e) {
-        if (e.getKeyChar() == '\n') {
+        if (e.getKeyChar() == '\n' || e.getKeyChar() == '\r') {
             callback.onBarcode(buffer.toString().trim());
             buffer.setLength(0);
         } else {
@@ -26,3 +27,4 @@ public class BarcodeListener extends KeyAdapter {
         void onBarcode(String barcode);
     }
 }
+

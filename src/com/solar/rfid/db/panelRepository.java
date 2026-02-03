@@ -1,3 +1,4 @@
+
 package com.solar.rfid.db;
 
 import java.sql.*;
@@ -7,9 +8,8 @@ public class PanelRepository {
 
     public static void updateEPC(String panelId, String epc) {
         try (Connection con = DBUtil.getConnection()) {
-            PreparedStatement ps = con.prepareStatement(
-                "UPDATE panel_data SET epc=? WHERE id=?"
-            );
+            PreparedStatement ps =
+                con.prepareStatement("UPDATE panel_data SET epc=? WHERE id=?");
             ps.setString(1, epc);
             ps.setString(2, panelId);
             ps.executeUpdate();
@@ -19,13 +19,11 @@ public class PanelRepository {
     }
 
     public static PanelData fetchPanel(String panelId) {
-
         PanelData d = new PanelData();
 
         try (Connection con = DBUtil.getConnection()) {
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM panel_data WHERE id=?"
-            );
+            PreparedStatement ps =
+                con.prepareStatement("SELECT * FROM panel_data WHERE id=?");
             ps.setString(1, panelId);
 
             ResultSet rs = ps.executeQuery();
@@ -37,6 +35,8 @@ public class PanelRepository {
                 d.setEff(rs.getString("eff"));
                 d.setBin(rs.getString("binning"));
                 d.setDate(rs.getString("date"));
+                d.setIpm(rs.getDouble("ipm"));
+                d.setVpm(rs.getDouble("vpm"));
             }
         } catch (Exception e) {
             e.printStackTrace();
