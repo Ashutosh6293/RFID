@@ -78,18 +78,21 @@ public class RFIDService {
 
         try {
             // 🔹 EXACTLY SAME 5 DATA (LIKE BEFORE)
-            String text = "ID:" + d.getId() + "|" +
-                    "PM:" + d.getPmax() + "|" +
-                    "VO:" + d.getVoc() + "|" +
-                    "IS:" + d.getIsc() + "|" +
-                    "BN:" + d.getBin();
+            String text = "ID:" + d.getId() +
+                    "|PM:" + d.getPmax() +
+                    "|VO:" + d.getVoc() +
+                    "|IS:" + d.getIsc() +
+                    "|EF:" + d.getEff() +
+                    "|BN:" + d.getBin() +
+                    "|IP:" + d.getIpm() +
+                    "|VP:" + d.getVpm();
 
             String hexPayload = asciiToHex(text);
 
             // 🔒 USER memory (VERY SAFE SETTINGS)
             int bank = 3; // USER
             int startAddr = 0; // START FROM 0 (important)
-            int maxWords = 16; // 🔥 LOWER LIMIT (most tags support)
+            int maxWords = 32; // 🔥 LOWER LIMIT (most tags support)
 
             int words = hexPayload.length() / 4;
             if (words > maxWords) {

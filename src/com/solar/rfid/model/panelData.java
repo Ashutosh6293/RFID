@@ -37,3 +37,7 @@ public class PanelData {
     public void setIpm(double ipm) { this.ipm = ipm; }
     public void setVpm(double vpm) { this.vpm = vpm; }
 }
+
+
+
+
