@@ -1,5 +1,4 @@
 
-
 package com.solar.rfid.rfid;
 
 import com.rscja.deviceapi.RFIDWithUHFSerialPortUR4;
@@ -93,7 +92,7 @@ public class RFIDService {
             tid = readTIDDirect();
             System.out.println("TID : " + tid);
             System.out.println("==========================");
-            
+
         }
         return tid;
     }
@@ -222,3 +221,8 @@ public class RFIDService {
         }
     }
 }
+
+
+
+
+
