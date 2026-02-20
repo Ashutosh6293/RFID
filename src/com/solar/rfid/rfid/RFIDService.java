@@ -1,12 +1,13 @@
+
+
 package com.solar.rfid.rfid;
 
 import com.rscja.deviceapi.RFIDWithUHFSerialPortUR4;
 import com.rscja.deviceapi.interfaces.IUR4;
 import com.rscja.deviceapi.entity.UHFTAGInfo;
 import com.rscja.deviceapi.interfaces.IUHFInventoryCallback;
-
+import com.rscja.deviceapi.entity.AntennaNameEnum;
 import com.solar.rfid.model.PanelData;
-import com.solar.rfid.model.StaticPanelData;
 
 public class RFIDService {
 
@@ -14,40 +15,55 @@ public class RFIDService {
     private static volatile boolean initialized = false;
     private static volatile String lastEPC = null;
 
+    private static final int MAX_RETRY = 3;
+
     // ================= INIT =================
     public static synchronized boolean initReader(String comPort) {
 
-        if (initialized) {
-            System.out.println("RFID already initialized");
+        if (initialized)
             return true;
-        }
 
         try {
             reader = new RFIDWithUHFSerialPortUR4();
             boolean ok = reader.init(comPort);
+
             if (ok) {
+
+                // 🔥 Set antenna power (UR4 compatible)
+                reader.setPower(AntennaNameEnum.ANT1, 30);
+
                 initialized = true;
-                System.out.println("UHF init on " + comPort + " = true");
+                System.out.println("RFID INIT SUCCESS on " + comPort);
+
+            } else {
+                System.out.println("RFID INIT FAILED");
             }
+
             return ok;
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // ================= EPC READ =================
-    public static String readSingleEPC(int timeoutMs) {
+    // ================= READ SINGLE EPC =================
+    public static synchronized String readSingleEPC(int timeoutMs) {
 
         if (!initialized || reader == null)
             return null;
 
         lastEPC = null;
 
-        reader.setInventoryCallback(info -> {
-            if (lastEPC == null) {
+        reader.setInventoryCallback(new IUHFInventoryCallback() {
+            @Override
+            public void callback(UHFTAGInfo info) {
+
+                if (lastEPC != null)
+                    return;
+
                 lastEPC = info.getEPC();
-                System.out.println("EPC READ = " + lastEPC);
+                reader.stopInventory();
             }
         });
 
@@ -55,65 +71,123 @@ public class RFIDService {
             return null;
 
         long start = System.currentTimeMillis();
+
         while (System.currentTimeMillis() - start < timeoutMs) {
+
             if (lastEPC != null)
                 break;
+
             try {
-                Thread.sleep(30);
+                Thread.sleep(20);
             } catch (Exception ignored) {
             }
         }
 
         reader.stopInventory();
-        return lastEPC;
+        String tid = null;
+
+        if (lastEPC != null) {
+            System.out.println("\n====== TAG DETECTED ======");
+            System.out.println("EPC : " + lastEPC);
+            // 🔥 READ TID IMMEDIATELY
+            tid = readTIDDirect();
+            System.out.println("TID : " + tid);
+            System.out.println("==========================");
+            
+        }
+        return tid;
     }
 
-    // ================= WRITE SAFE DATA TO TAG =================
-    public static boolean writePanelDataToTag(PanelData d) {
+    // ================= READ TID =================
+    public static synchronized String readTIDDirect() {
 
-        if (!initialized || reader == null) {
-            System.out.println("Reader not initialized");
-            return false;
-        }
+        if (!initialized || reader == null)
+            return null;
 
         try {
-            // 🔹 EXACTLY SAME 5 DATA (LIKE BEFORE)
+
+            reader.stopInventory();
+            Thread.sleep(80);
+
+            String tid = reader.readData(
+                    "00000000", // access password
+                    2, // TID bank
+                    0,
+                    6 // 6 words
+            );
+
+            System.out.println("TID : " + tid);
+            return tid;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ================= WRITE PANEL DATA =================
+    public static synchronized boolean writePanelDataToTag(PanelData d) {
+
+        if (!initialized || reader == null)
+            return false;
+
+        try {
+
+            reader.stopInventory();
+            Thread.sleep(100);
+
             String text = "ID:" + d.getId() +
                     "|PM:" + d.getPmax() +
                     "|VO:" + d.getVoc() +
-                    "|IS:" + d.getIsc() +
-                    "|EF:" + d.getEff() +
-                    "|BN:" + d.getBin() +
-                    "|IP:" + d.getIpm() +
-                    "|VP:" + d.getVpm();
+                    "|IS:" + d.getIsc();
 
-            String hexPayload = asciiToHex(text);
+            String hex = asciiToHex(text);
 
-            // 🔒 USER memory (VERY SAFE SETTINGS)
-            int bank = 3; // USER
-            int startAddr = 0; // START FROM 0 (important)
-            int maxWords = 32; // 🔥 LOWER LIMIT (most tags support)
+            int bank = 3; // USER memory
+            int start = 0;
+            int words = hex.length() / 4;
 
-            int words = hexPayload.length() / 4;
-            if (words > maxWords) {
-                hexPayload = hexPayload.substring(0, maxWords * 4);
-                words = maxWords;
+            if (words > 32) {
+                hex = hex.substring(0, 32 * 4);
+                words = 32;
             }
 
-            System.out.println("WRITE WORDS = " + words);
-            System.out.println("HEX PAYLOAD = " + hexPayload);
+            System.out.println("WRITING HEX: " + hex);
 
-            boolean ok = reader.writeData(
-                    "00000000", // default access password
-                    bank,
-                    startAddr,
-                    words,
-                    hexPayload);
+            for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
 
-            System.out.println("TAG WRITE OK = " + ok);
-            System.out.println("WRITTEN TEXT = " + text);
+                System.out.println("WRITE ATTEMPT: " + attempt);
 
-            return ok;
+                boolean ok = reader.writeData(
+                        "00000000",
+                        bank,
+                        start,
+                        words,
+                        hex);
+
+                if (ok) {
+
+                    Thread.sleep(100);
+
+                    // 🔥 VERIFY WRITE
+                    String verify = reader.readData(
+                            "00000000",
+                            bank,
+                            start,
+                            words);
+
+                    if (verify != null &&
+                            verify.equalsIgnoreCase(hex)) {
+
+                        System.out.println("WRITE VERIFIED SUCCESS");
+                        return true;
+                    }
+                }
+
+                Thread.sleep(150);
+            }
+
+            System.out.println("WRITE FAILED AFTER RETRIES");
+            return false;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,12 +195,30 @@ public class RFIDService {
         }
     }
 
-    // ================= ASCII → HEX =================
+    // ================= ASCII TO HEX =================
     private static String asciiToHex(String txt) {
+
         StringBuilder sb = new StringBuilder();
+
         for (char c : txt.toCharArray()) {
             sb.append(String.format("%02X", (int) c));
         }
+
         return sb.toString();
+    }
+
+    // ================= CLOSE =================
+    public static synchronized void closeReader() {
+
+        if (reader != null) {
+            try {
+                reader.stopInventory();
+                reader.free();
+                initialized = false;
+                System.out.println("RFID CLOSED");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
