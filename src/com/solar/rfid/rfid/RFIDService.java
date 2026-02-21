@@ -14,7 +14,7 @@ public class RFIDService {
     private static volatile boolean initialized = false;
     private static volatile String lastEPC = null;
 
-    private static final int MAX_RETRY = 3;
+    private static final int MAX_RETRY = 6;
 
     // ================= INIT =================
     public static synchronized boolean initReader(String comPort) {
@@ -194,6 +194,94 @@ public class RFIDService {
         }
     }
 
+    // ================= WRITE PANEL DATA =================
+    // public static synchronized boolean writePanelDataToTag(PanelData d, String
+    // tid) {
+
+    // if (!initialized || reader == null || tid == null)
+    // return false;
+
+    // try {
+
+    // reader.stopInventory();
+    // Thread.sleep(150);
+
+    // // 🔥 SET FILTER BY TID
+    // int bank = 2;
+    // int ptr = 0;
+    // int len = tid.length() * 4;
+
+    // boolean filterSet = reader.setFilter(bank, ptr, len, tid);
+
+    // if (!filterSet) {
+    // System.out.println("FILTER FAILED");
+    // return false;
+    // }
+
+    // Thread.sleep(100);
+
+    // String text = "ID:" + d.getId() +
+    // "|PM:" + d.getPmax() +
+    // "|VO:" + d.getVoc() +
+    // "|IS:" + d.getIsc();
+
+    // String hex = asciiToHex(text);
+
+    // while (hex.length() % 4 != 0) {
+    // hex += "00";
+    // }
+
+    // int userBank = 3;
+    // int start = 0;
+    // int words = hex.length() / 4;
+
+    // if (words > 32) {
+    // hex = hex.substring(0, 32 * 4);
+    // words = 32;
+    // }
+
+    // for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
+
+    // boolean ok = reader.writeData(
+    // "00000000",
+    // userBank,
+    // start,
+    // words,
+    // hex);
+
+    // if (ok) {
+
+    // Thread.sleep(150);
+
+    // String verify = reader.readData(
+    // "00000000",
+    // userBank,
+    // start,
+    // words);
+
+    // if (verify != null && verify.equalsIgnoreCase(hex)) {
+
+    // System.out.println("WRITE SUCCESS & VERIFIED");
+
+    // // 🔥 CLEAR FILTER
+    // reader.setFilter(0, 0, 0, null);
+    // return true;
+    // }
+    // }
+
+    // Thread.sleep(200);
+    // }
+
+    // reader.setFilter(0, 0, 0, null);
+    // System.out.println("WRITE FAILED");
+    // return false;
+
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // return false;
+    // }
+    // }
+
     // ================= ASCII TO HEX =================
     private static String asciiToHex(String txt) {
 
@@ -221,8 +309,3 @@ public class RFIDService {
         }
     }
 }
-
-
-
-
-
