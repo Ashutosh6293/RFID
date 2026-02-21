@@ -285,7 +285,7 @@ public class AutoMappingEngine {
                 ui.showStaticData(staticData);
 
                 // ── TAG WRITE ──────────────────────────────────────────────
-                boolean writeOk = RFIDService.writePanelDataToTag(data);
+                boolean writeOk = RFIDService.writePanelDataToTag(data, epc);
 
                 if (!writeOk) {
                     // Write failed — data already shown, just mark red
