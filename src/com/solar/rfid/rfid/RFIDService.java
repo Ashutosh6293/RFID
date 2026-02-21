@@ -124,77 +124,6 @@ public class RFIDService {
     }
 
     // ================= WRITE PANEL DATA =================
-    // public static synchronized boolean writePanelDataToTag(PanelData d) {
-
-    // if (!initialized || reader == null)
-    // return false;
-
-    // try {
-
-    // reader.stopInventory();
-    // Thread.sleep(100);
-
-    // String text = "ID:" + d.getId() +
-    // "|PM:" + d.getPmax() +
-    // "|VO:" + d.getVoc() +
-    // "|IS:" + d.getIsc();
-
-    // String hex = asciiToHex(text);
-
-    // int bank = 3; // USER memory
-    // int start = 0;
-    // int words = hex.length() / 4;
-
-    // if (words > 32) {
-    // hex = hex.substring(0, 32 * 4);
-    // words = 32;
-    // }
-
-    // System.out.println("WRITING HEX: " + hex);
-
-    // for (int attempt = 1; attempt <= MAX_RETRY; attempt++) {
-
-    // System.out.println("WRITE ATTEMPT: " + attempt);
-
-    // boolean ok = reader.writeData(
-    // "00000000",
-    // bank,
-    // start,
-    // words,
-    // hex);
-
-    // if (ok) {
-
-    // Thread.sleep(100);
-
-    // // 🔥 VERIFY WRITE
-    // String verify = reader.readData(
-    // "00000000",
-    // bank,
-    // start,
-    // words);
-
-    // if (verify != null &&
-    // verify.equalsIgnoreCase(hex)) {
-
-    // System.out.println("WRITE VERIFIED SUCCESS");
-    // return true;
-    // }
-    // }
-
-    // Thread.sleep(150);
-    // }
-
-    // System.out.println("WRITE FAILED AFTER RETRIES");
-    // return false;
-
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // return false;
-    // }
-    // }
-
-    // ================= WRITE PANEL DATA =================
     public static synchronized boolean writePanelDataToTag(PanelData d, String tid) {
 
         if (!initialized || reader == null || tid == null)
@@ -272,7 +201,7 @@ public class RFIDService {
 
             reader.setFilter(0, 0, 0, ""); // clear
             System.out.println("WRITE FAILED");
-            return true;
+            return false;
 
         } catch (Exception e) {
             e.printStackTrace();

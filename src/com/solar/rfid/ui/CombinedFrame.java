@@ -1,5 +1,4 @@
 
-
 package com.solar.rfid.ui;
 
 import javax.swing.*;
@@ -17,11 +16,11 @@ public class CombinedFrame extends JFrame {
 
     // ===== Live data labels =====
     private JLabel lblPanelId = new JLabel("-");
-    private JLabel lblTid     = new JLabel("-");
+    private JLabel lblTid = new JLabel("-");
 
     // ===== Status bar =====
-    private JLabel  status    = new JLabel("READY");
-    private JPanel  statusBar;                        // need reference to change bg color
+    private JLabel status = new JLabel("READY");
+    private JPanel statusBar; // need reference to change bg color
 
     // ===== IV Curve =====
     private IVCurvePanel ivPanel = new IVCurvePanel();
@@ -102,10 +101,53 @@ public class CombinedFrame extends JFrame {
         txtBarcode.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(60, 100, 160), 1),
                 BorderFactory.createEmptyBorder(5, 8, 5, 8)));
-        txtBarcode.setToolTipText("Scan barcode or type manually + Enter");
-        txtBarcode.addActionListener(e -> startMapping());
-        sidebar.add(txtBarcode);
+        txtBarcode.setToolTipText("Scan barcode or type manually");
 
+        // 🔥 Prevent double trigger
+        final boolean[] isProcessing = { false };
+
+        // Enter key support
+        txtBarcode.addActionListener(e -> {
+            if (!isProcessing[0] && !txtBarcode.getText().trim().isEmpty()) {
+                isProcessing[0] = true;
+                startMapping();
+                txtBarcode.setText("");
+                isProcessing[0] = false;
+            }
+        });
+
+        // 🔥 Auto trigger after scan (without Enter)
+        Timer scanTimer = new Timer(200, e -> {
+            if (!isProcessing[0] && !txtBarcode.getText().trim().isEmpty()) {
+                isProcessing[0] = true;
+                startMapping();
+                txtBarcode.setText("");
+                isProcessing[0] = false;
+            }
+        });
+        scanTimer.setRepeats(false);
+
+        txtBarcode.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+
+            private void restartTimer() {
+                scanTimer.restart();
+            }
+
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                restartTimer();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            }
+        });
+
+        sidebar.add(txtBarcode);
         sidebar.add(Box.createVerticalStrut(8));
 
         JButton btnScan = sidebarBtn("▶  Scan RFID & Map", new Color(33, 150, 243));
@@ -114,23 +156,88 @@ public class CombinedFrame extends JFrame {
 
         sidebar.add(divider());
 
+        // sectionLabel(sidebar, "DATA IMPORT");
+        // sidebar.add(Box.createVerticalStrut(8));
+
+        // JButton btnExcel = sidebarBtn("📂 Upload Excel", new Color(40, 167, 69));
+        // btnExcel.addActionListener(e -> {
+        // JFileChooser fc = new JFileChooser();
+        // fc.setDialogTitle("Select Excel File");
+        // int res = fc.showOpenDialog(this);
+        // if (res == JFileChooser.APPROVE_OPTION) {
+        // ExcelImporter.importExcel(fc.getSelectedFile());
+        // JOptionPane.showMessageDialog(this,
+        // "✅ Excel Imported:\n" + fc.getSelectedFile().getName());
+        // }
+        // SwingUtilities.invokeLater(() -> txtBarcode.requestFocusInWindow());
+        // });
+        // sidebar.add(btnExcel);
+
+        // sidebar.add(Box.createVerticalStrut(10));
+
         sectionLabel(sidebar, "DATA IMPORT");
         sidebar.add(Box.createVerticalStrut(8));
 
         JButton btnExcel = sidebarBtn("📂  Upload Excel", new Color(40, 167, 69));
+
         btnExcel.addActionListener(e -> {
+
             JFileChooser fc = new JFileChooser();
             fc.setDialogTitle("Select Excel File");
-            int res = fc.showOpenDialog(this);
-            if (res == JFileChooser.APPROVE_OPTION) {
-                ExcelImporter.importExcel(fc.getSelectedFile());
-                JOptionPane.showMessageDialog(this,
-                        "✅ Excel Imported:\n" + fc.getSelectedFile().getName());
-            }
-            SwingUtilities.invokeLater(() -> txtBarcode.requestFocusInWindow());
-        });
-        sidebar.add(btnExcel);
 
+            int res = fc.showOpenDialog(this);
+
+            if (res == JFileChooser.APPROVE_OPTION) {
+
+                File selectedFile = fc.getSelectedFile();
+
+                // 🔥 Loader Dialog
+                JDialog loader = new JDialog(this, "Importing Excel...", true);
+                loader.setLayout(new BorderLayout(10, 10));
+
+                JLabel label = new JLabel("Please wait... Importing data");
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+
+                JProgressBar bar = new JProgressBar();
+                bar.setIndeterminate(true);
+
+                loader.add(label, BorderLayout.CENTER);
+                loader.add(bar, BorderLayout.SOUTH);
+
+                loader.setSize(300, 110);
+                loader.setLocationRelativeTo(this);
+                loader.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+                // 🔥 Background Thread
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+
+
+                    @Override
+                    protected Void doInBackground() {
+                        ExcelImporter.importExcel(selectedFile);
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        loader.dispose();
+
+                        JOptionPane.showMessageDialog(
+                                CombinedFrame.this,
+                                "✅ Excel Imported:\n" + selectedFile.getName(),
+                                "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+
+                        SwingUtilities.invokeLater(() -> txtBarcode.requestFocusInWindow());
+                    }
+                };
+
+                worker.execute();
+                loader.setVisible(true);
+            }
+        });
+
+        sidebar.add(btnExcel);
         sidebar.add(Box.createVerticalStrut(10));
 
         JButton btnStatic = sidebarBtn("⚙  Static Panel Data", new Color(108, 117, 125));
@@ -186,8 +293,13 @@ public class CombinedFrame extends JFrame {
         btn.setAlignmentX(Component.LEFT_ALIGNMENT);
         Color brighter = bg.brighter();
         btn.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { btn.setBackground(brighter); }
-            public void mouseExited(MouseEvent e)  { btn.setBackground(bg); }
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(brighter);
+            }
+
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(bg);
+            }
         });
         return btn;
     }
@@ -240,11 +352,11 @@ public class CombinedFrame extends JFrame {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 6, 20));
 
-        addCenter(panel, "GAUTAM SOLAR PVT. LTD.",       Font.BOLD,  22, new Color(200, 16, 46));
-        addCenter(panel, "Gautam Solar Private Limited",  Font.BOLD,  11, Color.BLACK);
+        addCenter(panel, "GAUTAM SOLAR PVT. LTD.", Font.BOLD, 22, new Color(200, 16, 46));
+        addCenter(panel, "Gautam Solar Private Limited", Font.BOLD, 11, Color.BLACK);
         addCenter(panel, "7 km Milestone, Tosham Road, Dist. Bhiwani, Bawani Khera HR 127032",
-                         Font.PLAIN, 10, Color.DARK_GRAY);
-        addCenter(panel, "INDIA",                         Font.BOLD,  10, new Color(200, 16, 46));
+                Font.PLAIN, 10, Color.DARK_GRAY);
+        addCenter(panel, "INDIA", Font.BOLD, 10, new Color(200, 16, 46));
 
         panel.add(Box.createVerticalStrut(6));
 
@@ -261,9 +373,11 @@ public class CombinedFrame extends JFrame {
         lblTid.setFont(new Font("Arial", Font.BOLD, 11));
         lblTid.setForeground(Color.DARK_GRAY);
 
-        subRow.add(k1); subRow.add(lblPanelId);
+        subRow.add(k1);
+        subRow.add(lblPanelId);
         subRow.add(Box.createHorizontalStrut(30));
-        subRow.add(k2); subRow.add(lblTid);
+        subRow.add(k2);
+        subRow.add(lblTid);
         panel.add(subRow);
 
         panel.add(Box.createVerticalStrut(6));
@@ -294,25 +408,28 @@ public class CombinedFrame extends JFrame {
 
         String[] columns = { "Sr No.", "Parameter", "Value" };
         Object[][] data = {
-            { "1",  "Name of the Manufacturer of PV Module",         "" },
-            { "2",  "Name of the Manufacturer of Solar Cell",        "" },
-            { "3",  "Module Type",                                    "" },
-            { "4",  "Month & Year of the Manufacture of Module",     "" },
-            { "5",  "Month & Year of the Manufacture of Solar Cell", "" },
-            { "6",  "Country of Origin for PV Module",               "" },
-            { "7",  "Country of Origin for Solar Cell",              "" },
-            { "8",  "Power: P-Max of the Module",                    "" },
-            { "9",  "Voltage: V-Max of the Module",                  "" },
-            { "10", "Current: I-Max of the Module",                  "" },
-            { "11", "Fill Factor (FF) of the Module",                "" },
-            { "12", "VOC",                                           "" },
-            { "13", "ISC",                                           "" },
-            { "14", "Name of The Test Lab Issuing IEC Certificate",  "" },
-            { "15", "Date of Obtaining IEC Certificate",             "" }
+                { "1", "Name of the Manufacturer of PV Module", "" },
+                { "2", "Name of the Manufacturer of Solar Cell", "" },
+                { "3", "Module Type", "" },
+                { "4", "Month & Year of the Manufacture of Module", "" },
+                { "5", "Month & Year of the Manufacture of Solar Cell", "" },
+                { "6", "Country of Origin for PV Module", "" },
+                { "7", "Country of Origin for Solar Cell", "" },
+                { "8", "Power: P-Max of the Module", "" },
+                { "9", "Voltage: V-Max of the Module", "" },
+                { "10", "Current: I-Max of the Module", "" },
+                { "11", "Fill Factor (FF) of the Module", "" },
+                { "12", "VOC", "" },
+                { "13", "ISC", "" },
+                { "14", "Name of The Test Lab Issuing IEC Certificate", "" },
+                { "15", "Date of Obtaining IEC Certificate", "" }
         };
 
         tableModel = new DefaultTableModel(data, columns) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
         };
 
         dataTable = new JTable(tableModel);
@@ -327,7 +444,8 @@ public class CombinedFrame extends JFrame {
             public Component getTableCellRendererComponent(JTable t, Object val,
                     boolean sel, boolean focus, int row, int col) {
                 super.getTableCellRendererComponent(t, val, sel, focus, row, col);
-                if (!sel) setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 250, 255));
+                if (!sel)
+                    setBackground(row % 2 == 0 ? Color.WHITE : new Color(247, 250, 255));
                 if (col == 2) {
                     setFont(new Font("Arial", Font.BOLD, 11));
                     setForeground(new Color(20, 100, 190));
@@ -406,20 +524,20 @@ public class CombinedFrame extends JFrame {
             lblTid.setText(epc != null ? epc : "-");
 
             try {
-                double voc  = Double.parseDouble(d.getVoc());
-                double isc  = Double.parseDouble(d.getIsc());
+                double voc = Double.parseDouble(d.getVoc());
+                double isc = Double.parseDouble(d.getIsc());
                 double pmax = Double.parseDouble(d.getPmax());
                 double vmpp = voc * 0.78;
                 double impp = pmax / vmpp;
 
-                tableModel.setValueAt(d.getPmax(),                  7,  2);
-                tableModel.setValueAt(String.format("%.5f", vmpp),  8,  2);
-                tableModel.setValueAt(String.format("%.2f", impp),  9,  2);
-                tableModel.setValueAt(d.getEff(),                   10, 2);
-                tableModel.setValueAt(d.getVoc(),                   11, 2);
-                tableModel.setValueAt(d.getIsc(),                   12, 2);
-                tableModel.setValueAt(d.getDate(),                  3,  2);
-                tableModel.setValueAt(d.getDate(),                  4,  2);
+                tableModel.setValueAt(d.getPmax(), 7, 2);
+                tableModel.setValueAt(String.format("%.5f", vmpp), 8, 2);
+                tableModel.setValueAt(String.format("%.2f", impp), 9, 2);
+                tableModel.setValueAt(d.getEff(), 10, 2);
+                tableModel.setValueAt(d.getVoc(), 11, 2);
+                tableModel.setValueAt(d.getIsc(), 12, 2);
+                tableModel.setValueAt(d.getDate(), 3, 2);
+                tableModel.setValueAt(d.getDate(), 4, 2);
 
                 ivPanel.setCurve(voc, isc, pmax);
             } catch (Exception ex) {
@@ -429,15 +547,16 @@ public class CombinedFrame extends JFrame {
     }
 
     public void showStaticData(StaticPanelData s) {
-        if (s == null) return;
+        if (s == null)
+            return;
         SwingUtilities.invokeLater(() -> {
-            tableModel.setValueAt(s.getManufacturer(),     0,  2);
-            tableModel.setValueAt(s.getCellManufacturer(), 1,  2);
-            tableModel.setValueAt(s.getModuleType(),       2,  2);
-            tableModel.setValueAt(s.getModuleCountry(),    5,  2);
-            tableModel.setValueAt(s.getCellCountry(),      6,  2);
-            tableModel.setValueAt(s.getTestLab(),          13, 2);
-            tableModel.setValueAt(s.getIecDate(),          14, 2);
+            tableModel.setValueAt(s.getManufacturer(), 0, 2);
+            tableModel.setValueAt(s.getCellManufacturer(), 1, 2);
+            tableModel.setValueAt(s.getModuleType(), 2, 2);
+            tableModel.setValueAt(s.getModuleCountry(), 5, 2);
+            tableModel.setValueAt(s.getCellCountry(), 6, 2);
+            tableModel.setValueAt(s.getTestLab(), 13, 2);
+            tableModel.setValueAt(s.getIecDate(), 14, 2);
         });
     }
 
@@ -457,7 +576,7 @@ public class CombinedFrame extends JFrame {
     public void showSuccess(String msg) {
         SwingUtilities.invokeLater(() -> {
             status.setText("  ✅  " + msg);
-            statusBar.setBackground(new Color(40, 167, 69));   // green
+            statusBar.setBackground(new Color(40, 167, 69)); // green
         });
     }
 
@@ -467,7 +586,7 @@ public class CombinedFrame extends JFrame {
     public void showError(String msg) {
         SwingUtilities.invokeLater(() -> {
             status.setText("  ❌  " + msg);
-            statusBar.setBackground(new Color(200, 35, 51));   // red
+            statusBar.setBackground(new Color(200, 35, 51)); // red
         });
     }
 
