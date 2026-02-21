@@ -33,15 +33,15 @@ public class CombinedFrame extends JFrame {
     private JTextField txtBarcode = new JTextField();
 
     public CombinedFrame() {
-        setTitle("GAUTAM SOLAR – Module Specification");
+        setTitle("GAUTAM SOLAR – RFID SYSTEM");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout(0, 0));
-        getContentPane().setBackground(Color.WHITE);
+        getContentPane().setBackground(Color.LIGHT_GRAY);
 
         // SIDEBAR – fixed 220px on left
         JPanel sidebar = buildSidebar();
-        sidebar.setPreferredSize(new Dimension(220, 0));
+        sidebar.setPreferredSize(new Dimension(270, 0));//220 KO 270 KIYA
         add(sidebar, BorderLayout.WEST);
 
         // MAIN CONTENT
@@ -68,22 +68,22 @@ public class CombinedFrame extends JFrame {
         sidebar.setBackground(new Color(22, 30, 46));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 12, 20, 12));
 
-        JLabel logo1 = new JLabel("GAUTAM");
+        JLabel logo1 = new JLabel("GAUTAM SOLAR");
         logo1.setFont(new Font("Arial", Font.BOLD, 24));
         logo1.setForeground(new Color(220, 40, 50));
         logo1.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel logo2 = new JLabel("SOLAR");
-        logo2.setFont(new Font("Arial", Font.BOLD, 20));
-        logo2.setForeground(new Color(220, 40, 50));
-        logo2.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // JLabel logo2 = new JLabel("SOLAR");
+        // logo2.setFont(new Font("Arial", Font.BOLD, 20));
+        // logo2.setForeground(new Color(220, 40, 50));
+        // logo2.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         sidebar.add(logo1);
-        sidebar.add(logo2);
+        // sidebar.add(logo2);
         sidebar.add(Box.createVerticalStrut(4));
 
         JLabel tagline = new JLabel("Panel Management System");
-        tagline.setFont(new Font("Arial", Font.PLAIN, 9));
+        tagline.setFont(new Font("Arial", Font.PLAIN, 12));//9 ko 12 kr diya
         tagline.setForeground(new Color(120, 150, 190));
         tagline.setAlignmentX(Component.CENTER_ALIGNMENT);
         sidebar.add(tagline);
@@ -100,7 +100,7 @@ public class CombinedFrame extends JFrame {
         txtBarcode.setCaretColor(Color.WHITE);
         txtBarcode.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(60, 100, 160), 1),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8)));
+                BorderFactory.createEmptyBorder(5, 10, 5, 5)));
         txtBarcode.setToolTipText("Scan barcode or type manually");
 
         // 🔥 Prevent double trigger
@@ -264,7 +264,7 @@ public class CombinedFrame extends JFrame {
         sidebar.add(Box.createVerticalStrut(8));
 
         JLabel footer = new JLabel("Gautam Solar Pvt. Ltd. v1.0");
-        footer.setFont(new Font("Arial", Font.PLAIN, 9));
+        footer.setFont(new Font("Arial", Font.PLAIN, 12));//9 ko 12 kr diya
         footer.setForeground(new Color(70, 90, 120));
         footer.setAlignmentX(Component.CENTER_ALIGNMENT);
         sidebar.add(footer);
@@ -352,11 +352,11 @@ public class CombinedFrame extends JFrame {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 6, 20));
 
-        addCenter(panel, "GAUTAM SOLAR PVT. LTD.", Font.BOLD, 22, new Color(200, 16, 46));
-        addCenter(panel, "Gautam Solar Private Limited", Font.BOLD, 11, Color.BLACK);
+        addCenter(panel, "GAUTAM SOLAR PVT. LTD.", Font.BOLD, 28, new Color(200, 16, 46));
+        addCenter(panel, "Gautam Solar Private Limited", Font.BOLD, 18, Color.BLACK);
         addCenter(panel, "7 km Milestone, Tosham Road, Dist. Bhiwani, Bawani Khera HR 127032",
-                Font.PLAIN, 10, Color.DARK_GRAY);
-        addCenter(panel, "INDIA", Font.BOLD, 10, new Color(200, 16, 46));
+                Font.BOLD, 14, Color.DARK_GRAY);
+        addCenter(panel, "INDIA", Font.BOLD, 14, new Color(200, 16, 46));
 
         panel.add(Box.createVerticalStrut(6));
 
@@ -364,12 +364,12 @@ public class CombinedFrame extends JFrame {
         subRow.setBackground(Color.WHITE);
 
         JLabel k1 = new JLabel("Module Serial:");
-        k1.setFont(new Font("Arial", Font.PLAIN, 11));
+        k1.setFont(new Font("Arial", Font.BOLD, 14));
         lblPanelId.setFont(new Font("Arial", Font.BOLD, 11));
         lblPanelId.setForeground(new Color(33, 150, 243));
 
         JLabel k2 = new JLabel("TID:");
-        k2.setFont(new Font("Arial", Font.PLAIN, 11));
+        k2.setFont(new Font("Arial", Font.BOLD, 14));
         lblTid.setFont(new Font("Arial", Font.BOLD, 11));
         lblTid.setForeground(Color.DARK_GRAY);
 
@@ -403,7 +403,7 @@ public class CombinedFrame extends JFrame {
         container.setBorder(BorderFactory.createEmptyBorder(6, 20, 4, 20));
 
         JLabel title = new JLabel("Detailed Specification:");
-        title.setFont(new Font("Arial", Font.PLAIN, 11));
+        title.setFont(new Font("Arial", Font.BOLD, 16));
         container.add(title, BorderLayout.NORTH);
 
         String[] columns = { "Sr No.", "Parameter", "Value" };
@@ -433,7 +433,7 @@ public class CombinedFrame extends JFrame {
         };
 
         dataTable = new JTable(tableModel);
-        dataTable.setFont(new Font("Arial", Font.PLAIN, 11));
+        dataTable.setFont(new Font("Arial", Font.BOLD, 14));//11 KO 14 KIYA
         dataTable.setRowHeight(24);
         dataTable.setGridColor(new Color(210, 215, 225));
         dataTable.setShowGrid(true);
@@ -458,7 +458,7 @@ public class CombinedFrame extends JFrame {
         });
 
         JTableHeader header = dataTable.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 11));
+        header.setFont(new Font("Arial", Font.BOLD, 14));//11 KO 14 KIYA
         header.setBackground(new Color(255, 255, 200));
         header.setForeground(Color.BLACK);
         header.setReorderingAllowed(false);
@@ -486,7 +486,7 @@ public class CombinedFrame extends JFrame {
         container.setBorder(BorderFactory.createEmptyBorder(4, 20, 10, 20));
 
         JLabel title = new JLabel("IV Characteristics of the Module:");
-        title.setFont(new Font("Arial", Font.PLAIN, 11));
+        title.setFont(new Font("Arial", Font.BOLD, 14));
         container.add(title, BorderLayout.NORTH);
         container.add(ivPanel, BorderLayout.CENTER);
 
