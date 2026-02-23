@@ -4,6 +4,7 @@ public class StaticPanelData {
 
     private String manufacturer;
     private String cellManufacturer;
+    private String cellManufacturingDate;
     private String moduleType;
     private String moduleCountry;
     private String cellCountry;
@@ -14,6 +15,7 @@ public class StaticPanelData {
 
     public String getManufacturer() { return manufacturer; }
     public String getCellManufacturer() { return cellManufacturer; }
+    public String getCellManufacturingDate() { return cellManufacturingDate; }
     public String getModuleType() { return moduleType; }
     public String getModuleCountry() { return moduleCountry; }
     public String getCellCountry() { return cellCountry; }
@@ -24,6 +26,7 @@ public class StaticPanelData {
 
     public void setManufacturer(String v) { manufacturer = v; }
     public void setCellManufacturer(String v) { cellManufacturer = v; }
+    public void setCellManufacturingDate(String v) { cellManufacturingDate = v; }
     public void setModuleType(String v) { moduleType = v; }
     public void setModuleCountry(String v) { moduleCountry = v; }
     public void setCellCountry(String v) { cellCountry = v; }

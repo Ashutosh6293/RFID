@@ -418,7 +418,7 @@ public class CombinedFrame extends JFrame {
                 { "8", "Power: P-Max of the Module", "" },
                 { "9", "Voltage: V-Max of the Module", "" },
                 { "10", "Current: I-Max of the Module", "" },
-                { "11", "Fill Factor (FF) of the Module", "" },
+                { "11", "Efficiency (eff) of the Module", "" },
                 { "12", "VOC", "" },
                 { "13", "ISC", "" },
                 { "14", "Name of The Test Lab Issuing IEC Certificate", "" },

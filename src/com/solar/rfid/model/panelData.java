@@ -14,6 +14,7 @@ public class PanelData {
 
     private double ipm;
     private double vpm;
+    // private String ff;
 
     // ✅ NEW FIELD
     private String status;
@@ -23,6 +24,7 @@ public class PanelData {
     public String getVoc() { return voc; }
     public String getIsc() { return isc; }
     public String getEff() { return eff; }
+    // public String getff() { return ff; }
     public String getBin() { return bin; }
     public String getDate() { return date; }
 
@@ -37,6 +39,7 @@ public class PanelData {
     public void setVoc(String voc) { this.voc = voc; }
     public void setIsc(String isc) { this.isc = isc; }
     public void setEff(String eff) { this.eff = eff; }
+    // public void setFf(String ff) { this.ff = ff; }
     public void setBin(String bin) { this.bin = bin; }
     public void setDate(String date) { this.date = date; }
 
