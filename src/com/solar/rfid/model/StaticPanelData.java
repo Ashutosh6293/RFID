@@ -1,7 +1,11 @@
 package com.solar.rfid.model;
 
 public class StaticPanelData {
+    
 
+
+
+    private int id;
     private String manufacturer;
     private String cellManufacturer;
     private String cellManufacturingDate;
@@ -23,6 +27,7 @@ public class StaticPanelData {
     public String getIecDate() { return iecDate; }
     public String getFactoryCode() { return factoryCode; }
     public String getLineCode() { return lineCode; }
+    public int getId() { return id; }
 
     public void setManufacturer(String v) { manufacturer = v; }
     public void setCellManufacturer(String v) { cellManufacturer = v; }
@@ -34,4 +39,5 @@ public class StaticPanelData {
     public void setIecDate(String v) { iecDate = v; }
     public void setFactoryCode(String v) { factoryCode = v; }
     public void setLineCode(String v) { lineCode = v; }
+    public void setId(int id) { this.id = id; }
 }

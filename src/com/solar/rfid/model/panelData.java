@@ -5,7 +5,11 @@
 package com.solar.rfid.model;
 
 public class PanelData {
+    
 
+
+
+    private int staticId;
     private String id;
     private String pmax;
     private String voc;
@@ -34,6 +38,7 @@ public class PanelData {
     public String getCellManufacturingDate() {
         return cellManufacturingDate != null ? cellManufacturingDate : "";
     }
+    public int getStaticId() { return staticId; }
     public double getIpm()    { return ipm; }
     public double getVpm()    { return vpm; }
     public String getStatus() { return status != null ? status : ""; }
@@ -57,4 +62,5 @@ public class PanelData {
     public void setStatus(String status) { this.status = status; }
     // ✅ ADDED
     public void setTid(String tid)       { this.tid = tid; }
+    public void setStaticId(int staticId) { this.staticId = staticId; }
 }

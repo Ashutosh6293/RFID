@@ -27,16 +27,44 @@ public class PanelRepository {
     }
 
     // ================= SAFE UPDATE =================
+    // public static boolean updateEPC(String panelId, String epc, String status) {
+
+    // try (Connection con = DBUtil.getConnection()) {
+
+    // PreparedStatement ps = con.prepareStatement(
+    // "UPDATE panel_data SET epc=?, status=? WHERE id=?");
+
+    // ps.setString(1, epc);
+    // ps.setString(2, status);
+    // ps.setString(3, panelId);
+
+    // ps.executeUpdate();
+    // return true;
+
+    // } catch (SQLIntegrityConstraintViolationException ex) {
+
+    // System.out.println("DUPLICATE EPC ERROR");
+    // return false;
+
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // return false;
+    // }
+    // }
+
     public static boolean updateEPC(String panelId, String epc, String status) {
 
         try (Connection con = DBUtil.getConnection()) {
 
-            PreparedStatement ps = con.prepareStatement(
-                    "UPDATE panel_data SET epc=?, status=? WHERE id=?");
+            int staticId = StaticDataRepository.getLatestStaticId();
 
-            ps.setString(1, epc);
-            ps.setString(2, status);
-            ps.setString(3, panelId);
+            PreparedStatement ps = con.prepareStatement(
+                    "UPDATE panel_data SET epc=?, status=?, static_id=? WHERE id=?");
+
+            ps.setString(1, epc); // epc
+            ps.setString(2, status); // status
+            ps.setInt(3, staticId); // static_id
+            ps.setString(4, panelId); // WHERE id = ?
 
             ps.executeUpdate();
             return true;
@@ -89,59 +117,133 @@ public class PanelRepository {
     }
 
     // ================= SEARCH BY SERIAL NO ✅ =================
+    // public static PanelData findBySerialNo(String serialNo) {
+
+    // PanelData d = null;
+
+    // try (Connection con = DBUtil.getConnection()) {
+
+    // // PreparedStatement ps = con.prepareStatement(
+    // // "SELECT * FROM panel_data WHERE id = ?");
+    // PreparedStatement ps = con.prepareStatement(
+    // "SELECT p.*, s.* FROM panel_data p " +
+    // "LEFT JOIN static_panel_data s ON p.static_id = s.id " +
+    // "WHERE p.id = ?");
+
+    // ps.setString(1, serialNo);
+
+    // ResultSet rs = ps.executeQuery();
+
+    // if (rs.next()) {
+
+    // d = new PanelData();
+
+    // d.setId(rs.getString("id"));
+    // d.setTid(rs.getString("epc")); // epc column = TID
+    // d.setPmax(rs.getString("pmax"));
+    // d.setVoc(rs.getString("voc"));
+    // d.setIsc(rs.getString("isc"));
+    // d.setFf(rs.getString("ff"));
+    // d.setBin(rs.getString("binning"));
+    // d.setIpm(rs.getDouble("ipm"));
+    // d.setVpm(rs.getDouble("vpm"));
+    // d.setStatus(rs.getString("status"));
+
+    // // ✅ date column: DATETIME → "MM/yyyy" format
+    // Timestamp ts = rs.getTimestamp("date");
+    // if (ts != null) {
+    // String formatted = new SimpleDateFormat("MM/yyyy").format(ts);
+    // d.setDate(formatted);
+    // } else {
+    // d.setDate("");
+    // }
+
+    // // cell_manufacturing_date — agar column exist karta hai
+    // try {
+    // Date cellDate = rs.getDate("cell_manufacturing_date");
+    // if (cellDate != null) {
+    // String formatted = new SimpleDateFormat("MM/yyyy").format(cellDate);
+    // d.setCellManufacturingDate(formatted);
+    // }
+    // } catch (Exception ignored) {
+    // // column nahi hai toh ignore karo
+    // }
+    // }
+
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+
+    // return d; // null = not found
+    // }
+    // }
+
     public static PanelData findBySerialNo(String serialNo) {
 
-        PanelData d = null;
+    PanelData d = null;
 
-        try (Connection con = DBUtil.getConnection()) {
+    try (Connection con = DBUtil.getConnection()) {
 
-            PreparedStatement ps = con.prepareStatement(
-                    "SELECT * FROM panel_data WHERE id = ?");
+        PreparedStatement ps = con.prepareStatement(
+            "SELECT " +
+            "p.id AS panel_id, p.epc, p.pmax, p.voc, p.isc, p.ff, " +
+            "p.binning, p.ipm, p.vpm, p.status, p.date, " +
+            "p.static_id, " +   // 🔥 VERY IMPORTANT
+            "s.cell_manufacturing_date " +
+            "FROM panel_data p " +
+            "LEFT JOIN static_panel_data s ON p.static_id = s.id " +
+            "WHERE p.id = ?"
+        );
 
-            ps.setString(1, serialNo);
+        ps.setString(1, serialNo);
 
-            ResultSet rs = ps.executeQuery();
+        ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
+        if (rs.next()) {
 
-                d = new PanelData();
+            d = new PanelData();
 
-                d.setId(rs.getString("id"));
-                d.setTid(rs.getString("epc"));          // epc column = TID
-                d.setPmax(rs.getString("pmax"));
-                d.setVoc(rs.getString("voc"));
-                d.setIsc(rs.getString("isc"));
-                d.setFf(rs.getString("ff"));
-                d.setBin(rs.getString("binning"));
-                d.setIpm(rs.getDouble("ipm"));
-                d.setVpm(rs.getDouble("vpm"));
-                d.setStatus(rs.getString("status"));
+            // ───── PANEL DATA ─────
+            d.setId(rs.getString("panel_id"));
+            d.setTid(rs.getString("epc"));
+            d.setPmax(rs.getString("pmax"));
+            d.setVoc(rs.getString("voc"));
+            d.setIsc(rs.getString("isc"));
+            d.setFf(rs.getString("ff"));
+            d.setBin(rs.getString("binning"));
+            d.setIpm(rs.getDouble("ipm"));
+            d.setVpm(rs.getDouble("vpm"));
+            d.setStatus(rs.getString("status"));
 
-                // ✅ date column: DATETIME → "MM/yyyy" format
-                Timestamp ts = rs.getTimestamp("date");
-                if (ts != null) {
-                    String formatted = new SimpleDateFormat("MM/yyyy").format(ts);
-                    d.setDate(formatted);
-                } else {
-                    d.setDate("");
-                }
+            // 🔥 STATIC ID LOAD KARNA MAT BHULNA
+            d.setStaticId(rs.getInt("static_id"));
 
-                // cell_manufacturing_date — agar column exist karta hai
-                try {
-                    Date cellDate = rs.getDate("cell_manufacturing_date");
-                    if (cellDate != null) {
-                        String formatted = new SimpleDateFormat("MM/yyyy").format(cellDate);
-                        d.setCellManufacturingDate(formatted);
-                    }
-                } catch (Exception ignored) {
-                    // column nahi hai toh ignore karo
-                }
+            // Date format
+            Timestamp ts = rs.getTimestamp("date");
+            if (ts != null) {
+                String formatted = new SimpleDateFormat("MM/yyyy").format(ts);
+                d.setDate(formatted);
+            } else {
+                d.setDate("");
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            // Static cell date
+            Date cellDate = rs.getDate("cell_manufacturing_date");
+            if (cellDate != null) {
+                String formatted = new SimpleDateFormat("MM/yyyy").format(cellDate);
+                d.setCellManufacturingDate(formatted);
+            } else {
+                d.setCellManufacturingDate("");
+            }
         }
 
-        return d; // null = not found
+        rs.close();
+        ps.close();
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return d;
+}
 }

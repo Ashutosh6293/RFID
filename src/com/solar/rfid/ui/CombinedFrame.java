@@ -291,7 +291,9 @@ public class CombinedFrame extends JFrame {
                         showError("Panel nahi mila: " + serial);
                     } else {
                         // Static data load karo (same as live scan)
-                        StaticPanelData sd = StaticDataRepository.load();
+                        // StaticPanelData sd = StaticDataRepository.load();
+                        StaticPanelData sd =
+        StaticDataRepository.findById(found.getStaticId());
                         showMappedData(found, found.getTid());
                         if (sd != null) showStaticData(sd);
                         showSuccess("Panel mila: " + serial);
