@@ -23,6 +23,7 @@ src\com\solar\rfid\ui\MappingFrame.java ^
 src\com\solar\rfid\ui\LiveMappingFrame.java ^
 src\com\solar\rfid\ui\IVCurvePanel.java ^
 src\com\solar\rfid\ui\PrintablePanelReport.java ^
+src\com\solar\rfid\sync\DataSyncService.java ^
 src\com\solar\rfid\ui\CombinedFrame.java ^
 src\com\solar\rfid\ui\StaticDataForm.java
 
